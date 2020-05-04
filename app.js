@@ -1,29 +1,52 @@
 const express = require('express');
 
-var app = new express()
-app.post("/signup",(req,res,next)=>{
+const mongoose = require('mongoose');
+
+const bodyparser = require('body-parser')
+
+const cors = require('cors')
+
+var app = express()
+
+app.use(cors())
+
+// app.use(bodyparser.urlencoded({extended:false}))
+app.use(bodyparser.json())
+
+app.post('/signup',(req,res,next)=>{
+    res.json({
+        user_Logged:req.body.username
+    })
+})
+
+app.post('/login',(req,res,next)=>{
+    console.log(req.body)
+
+})
+
+app.post('/addpost',(req,res,next)=>{
     console.log(req)
 })
 
-app.post("/login",(req,res,next)=>{
+app.use('/getpost',(req,res,next)=>{
     console.log(req)
 })
 
-app.post("/addpost",(req,res,next)=>{
-    console.log(req)
-})
-
-app.get("/getpost",(req,res,next)=>{
-    console.log(req)
-})
-
-app.post("/deletepost",(req,res,next)=>{
+app.post('/deletepost',(req,res,next)=>{
     console.log(req)
 })
 
 app.use('/',(req,res,next)=>{
-    res.status(404).write("<h1>Error: Page Not Found</h1>")
-    return res.end()
-})
+    console.log("rfghj")
+    res.status(404).json({
+        error: "Error"
+    })
+})   
 
-app.listen(3000)
+mongoose.connect('mongodb+srv://Anushil:b15XwRIwgyMpTYii@clusternode-rzps1.mongodb.net/test?retryWrites=true&w=majority')
+.then((esult)=>{
+    console.log("Connected to database")
+    app.listen(3000)
+}).catch((err)=>{
+    console.log(err)
+})
