@@ -1,3 +1,6 @@
+### yarn install 
+To install all the neccesarry dependencies in a node-modules folder
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
