@@ -9,6 +9,42 @@ const POST = require('./posts')
 
 const bodyparser = require('body-parser')
 
+var passport = require('passport');
+var Strategy = require('passport-local').Strategy;
+
+passport.use(new Strategy(
+    function (username, password, cb) {
+        USER.findOne({ 'username': username })
+            .then((doc) => {
+                if (doc === null) {
+                    return cb(null, false)
+                }
+                bcrypt.compare(password, doc.password, function (err, result) {
+                    if (result === true) {
+                        return cb(null, doc)
+                    } else {
+                        return cb(null, false)
+                    }
+                })
+            })
+            .catch((err) => { return cb(err) })
+    }))
+
+passport.serializeUser(function (user, cb) {
+    cb(null, user.username);
+});
+
+passport.deserializeUser(function (username, cb) {
+    USER.findOne({ 'username': username })
+        .then((doc) => {
+            cb(null, doc)
+        })
+        .catch((err) => {
+            cb(err)
+        })
+});
+
+
 const session = require('express-session')
 
 const MongoDbStore = require('connect-mongodb-session')(session)
@@ -27,6 +63,9 @@ app.use(session({
     secret: 'codeacious-secret-node-project', resave: false, saveUninitialized: false,
     cookie: { secure: false }, store: store
 }))
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use(bodyparser.json())
 
@@ -47,48 +86,21 @@ app.post('/signup', (req, res, next) => {
 
 })
 app.get('/logout', (req, res, next) => {
-    if (req.session.username !== '') {
-        req.session.username = ''
-        return res.status(200).end()
-    }
+    req.logout()
     res.status(200).end()
 })
-
-app.post('/user', (req, res, next) => {
-
-    USER.findOne({ 'username': req.body.username })
-        .then((result) => {
-            if (result === null) {
-                res.status(404);
-                return res.end();
-            }
-            bcrypt.compare(req.body.password, result.password, function (err, result) {
-                if (result === true) {
-                    req.session.username = req.body.username
-                    res.status(200)
-                    return res.end()
-                } else {
-                    res.status(404);
-                    return res.end();
-                }
-            })
-
-        })
-        .catch((err) => { console.log(err) })
-
+app.get('/user', (req, res, next) => {
+    res.status(404).end()
 })
-app.use('/post', (req, res, next) => {
-    if (req.session.username == '') {
-        console.log('No logged user in client')
-        res.status(404)
-        return res.end()
-    }
+app.post('/user',passport.authenticate('local',{failureRedirect:'/user'}), (req, res, next) => {
+    res.status(200).end()
+})
+app.use('/post',require('connect-ensure-login').ensureLoggedIn('/user'), (req, res, next) => {
     next()
 })
 
 app.post('/post', (req, res, next) => {
-
-    const username = req.session.username
+    const username = req.session.passport.user
     const newpost = new POST({
         username: username,
         title: req.body.title,
@@ -101,12 +113,14 @@ app.post('/post', (req, res, next) => {
 })
 
 app.get('/post', (req, res, next) => {
+    
     const star = req.query.starred === 'true' ? true : false
-    const username = req.session.username
+    const username = req.session.passport.user
+    
     POST.aggregate([{ $match: { 'username': username } }, { $match: { starred: star } }])
         .then((docs) => {
-
-            return res.status(200).send(docs)
+            
+            return res.status(200).send(docs).end()
         })
         .catch((err) => {
             return res.status(200).end()
@@ -121,11 +135,11 @@ app.put('/post', (req, res, next) => {
             }
             POST.updateOne({ _id: doc._id }, { $set: { starred: !doc.starred } })
                 .then(() => {
-                    console.log('starred')
+                    
                     return res.status(200).end()
                 })
                 .catch((err) => {
-                    console.log(error)
+                    console.log(err)
                     res.status(404).end()
                 })
         })
@@ -147,7 +161,7 @@ app.delete('/post', (req, res, next) => {
 app.post('/editpost', (req, res, next) => {
     POST.updateOne({ '_id': req.body.id }, { $set: { 'title': req.body.title, 'content': req.body.content } })
         .then(() => {
-            console.log('edited')
+            
             res.status(200).end()
         })
         .catch((err) => { console.log(err) })
