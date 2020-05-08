@@ -10,14 +10,21 @@ export default class SignUp extends React.Component {
             username: "",
             password: "",
             rePass: "",
-            signedUp: false
+            signedUp: false,
+            loggedIn:false,
         }
     }
     changeHandler = (e) => {
         this.setState({ [e.target.name]: e.target.value })
     }
+    componentDidMount(){
+        axios.post("http://localhost:3000/signup", this.state, { withCredentials: true })
+        .then()
+        .catch((err)=>{this.setState({loggedIn:true})})
+    }
     signup = (e) => {
         e.preventDefault()
+        
         if(this.state.password!==this.state.rePass){
             alert('Passwords Do no Match')
             return
@@ -32,8 +39,10 @@ export default class SignUp extends React.Component {
 
     render() {
         if (this.state.signedUp === true) {
-            console.log("Hey")
             return (<Redirect to="/login" />)
+        }
+        if(this.state.loggedIn===true){
+            return(<Redirect to="/post"/>)
         }
         return (
             <div style={styles.container}>
