@@ -69,6 +69,12 @@ app.use(passport.session());
 
 app.use(bodyparser.json())
 
+app.use('/signup',require('connect-ensure-login').ensureLoggedIn('/redirect'),(req,res,next)=>{
+    res.status(300).end()
+})
+app.get('/redirect',(req,res)=>{
+    res.status(200).end()
+})
 app.post('/signup', (req, res, next) => {
     const user = new USER({
         username: req.body.username,
