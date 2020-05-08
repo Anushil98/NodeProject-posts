@@ -43,7 +43,7 @@ export default class Post extends React.Component {
         this.setState({ 'toedit': { 'id': id, 'title': title, 'content': content } })
     }
     starPost = (pid) => {
-        axios.put("http://localhost:3000/post", { 'id': pid }, { withCredentials: true })
+        axios.put("http://localhost:3000/post/star", { 'id': pid }, { withCredentials: true })
             .then(() => {
                 axios.get("http://localhost:3000/post", { withCredentials: true, params:{'starred':this.state.showStarred} })
                     .then(response => {

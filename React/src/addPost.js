@@ -34,7 +34,7 @@ export default class AddPost extends React.Component {
                 .catch((err) => { console.log(err) })
         }
         else {
-            axios.post('http://localhost:3000/editpost', { ...this.state, 'id': this.props.id.id }, { withCredentials: true })
+            axios.put('http://localhost:3000/post', { ...this.state, 'id': this.props.id.id }, { withCredentials: true })
                 .then(() => {
                     this.setState({ 'title': '', 'content': '' })
                 })
