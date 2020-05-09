@@ -18,7 +18,7 @@ export default class SignUp extends React.Component {
         this.setState({ [e.target.name]: e.target.value })
     }
     componentDidMount(){
-        axios.post("http://localhost:3000/signup", this.state, { withCredentials: true })
+        axios.get("http://localhost:3000/signup",{ withCredentials: true })
         .then()
         .catch((err)=>{this.setState({loggedIn:true})})
     }
