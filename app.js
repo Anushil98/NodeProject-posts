@@ -1,6 +1,6 @@
 const express = require('express');
-const mongoose = require('mongoose');
-
+const conn = require('./mongooseConnect')
+const cote = require('cote')
 const passport = require('./routes/auth')
 
 const userroutes = require('./routes/user')
@@ -30,25 +30,31 @@ app.use(passport.session());
 app.use(bodyparser.json())
 
 //SignUp routes
-app.use('/signup',require('connect-ensure-login').ensureLoggedIn('/redirect'),(req,res,next)=>{
+const signupRequester = new cote.Requester({
+    name: 'sign up requester',
+    key:'signupService'
+})
+
+app.get('/signup',require('connect-ensure-login').ensureLoggedIn('/redirect'),(req,res,next)=>{
     res.status(300).end()
 })
-app.get('/redirect',(req,res)=>{
+app.get('/redirect',(req,res,next)=>{
     res.status(200).end()
 })
 app.post('/signup', (req, res, next) => {
-    const user = new USER({
+    const user = {
         username: req.body.username,
         password: req.body.password
-    })
-    USER.findOne({ 'username': req.body.username }).then((doc) => {
-        if (doc != null) {
-            return res.status(404).end()
+    }
+    console.log("Hey")
+    signupRequester.send({type:'signup',user:user},function(err){
+        if(err==200){
+            res.status(200).end()
         }
-        user.save()
-        res.status(200).end()
-
-    }).catch((err) => console.log(err))
+        else{
+            res.status(404).end()
+        }
+    })
 })
 app.get('/logout', (req, res, next) => {
     req.logout()
@@ -65,10 +71,5 @@ app.use('/', (req, res, next) => {
     return res.end()
 })
 
-mongoose.connect(MONGOURI)
-    .then((result) => {
-        console.log("Connected to database")
-        app.listen(3000)
-    }).catch((err) => {
-        console.log(err)
-    })
+app.listen(3000)
+

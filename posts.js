@@ -1,5 +1,6 @@
 const mongoose =  require('mongoose')
 const schema = mongoose.Schema
+const conn = require('./mongooseConnect')
 
 const postSchema = new schema({
     username:{type:String,required:true},
@@ -8,4 +9,4 @@ const postSchema = new schema({
     starred:{type: Boolean}
 })
 
-module.exports = mongoose.model('POST',postSchema)
+module.exports = conn.model('POST',postSchema)

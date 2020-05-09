@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
+const conn = require('./mongooseConnect')
 
 const schema = mongoose.Schema
 const post = require('./posts')
@@ -20,4 +21,4 @@ userSchema.pre('save',function(next){
 
 
 
-module.exports = mongoose.model('USER',userSchema);
+module.exports = conn.model('USER',userSchema);
